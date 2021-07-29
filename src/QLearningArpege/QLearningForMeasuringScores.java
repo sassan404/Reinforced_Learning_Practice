@@ -16,7 +16,7 @@ public class QLearningForMeasuringScores extends QLearning<BalanceThresholds, Va
     List<BalanceThresholds> mostRecurrentPoints;
     int[] statesRecurrence;
     int mostRecurrentStateIndex = 0;
-    int mostRecurrentStateIndexSize = 200;
+    int mostRecurrentStateIndexSize = 20;
     public QLearningForMeasuringScores(double change, double minDifference, double minTh1, double maxTh1, double minTh2, double maxTh2, double minTh3, double maxTh3, double minTh4, double maxTh4) {
         this.minDiff = minDifference;
         this.minTh1 = minTh1;
@@ -30,7 +30,7 @@ public class QLearningForMeasuringScores extends QLearning<BalanceThresholds, Va
         statesWithNoChange = new ArrayList<>();
         mostRecurrentPoints = new ArrayList<>();
         this.change = change;
-        initQTable(true);
+        initQTable();
     }
 
     public QLearningForMeasuringScores() {
@@ -56,7 +56,7 @@ public class QLearningForMeasuringScores extends QLearning<BalanceThresholds, Va
 
     @Override
     public void populateStates() {
-        Set<BalanceThresholds> ValuesList = new HashSet<>();
+        List<BalanceThresholds> ValuesList = new ArrayList<>();
         for (double i = minTh1;i<=maxTh1; i=i+change){
             i = roundNumber(i);
             for(double j = Math.max(minTh2, i + change); j<=maxTh2; j=j+change){
@@ -96,12 +96,13 @@ public class QLearningForMeasuringScores extends QLearning<BalanceThresholds, Va
 
     @Override
     void QOfActionWithNegative(){
-        for(List<BalanceThresholds> action: actions){
-            for(int i =0; i<action.size(); i++){
-                if(action.get(i).th1<minTh1 || action.get(i).th2<minTh2 || action.get(i).th3<minTh3 || action.get(i).th4<minTh4 || action.get(i).th2<action.get(i).th1+minDiff ||
-                        action.get(i).th3<action.get(i).th2+minDiff || action.get(i).th4<action.get(i).th3+minDiff ||
-                        action.get(i).th1>maxTh1 || action.get(i).th2>maxTh2 || action.get(i).th3>maxTh3 || action.get(i).th4>maxTh4) {
-                    QTable[actions.indexOf(action)][i] = -1;
+        for(int i=0; i< actions.size(); i++){
+            for(int j =0; j<actions.get(i).size(); j++){
+                if(actions.get(i).get(j).th1<minTh1 || actions.get(i).get(j).th2<minTh2 || actions.get(i).get(j).th3<minTh3 || actions.get(i).get(j).th4<minTh4 ||
+                        actions.get(i).get(j).th2<actions.get(i).get(j).th1+minDiff || actions.get(i).get(j).th3<actions.get(i).get(j).th2+minDiff ||
+                        actions.get(i).get(j).th4<actions.get(i).get(j).th3+minDiff || actions.get(i).get(j).th1>maxTh1 || actions.get(i).get(j).th2>maxTh2 ||
+                        actions.get(i).get(j).th3>maxTh3 || actions.get(i).get(j).th4>maxTh4) {
+                    QTable[i][j] = -1;
                 }
             }
         }
@@ -129,28 +130,28 @@ public class QLearningForMeasuringScores extends QLearning<BalanceThresholds, Va
         return new Random().nextInt(states.size());
     }
 
-    @Override
-    void updateQTable(int previousActionIndex, int previousStateIndex, List<ValueAndScore> points) {
-        if(getSTD(points, states.get(previousStateIndex))==getSTD(points, states.get(currentStateIndex)) && QTable[currentStateIndex][previousActionIndex]!=-1){
-            statesWithNoChange.add(new Integer[]{previousStateIndex, previousActionIndex});
-            sameActionNext = true;
-            this.previousActionIndex = previousActionIndex;
-        } else {
-            if(statesWithNoChange.size()>0) {
-                for (Integer[] state : statesWithNoChange) {
-                    super.updateQTable(state[1], state[0], points);
-                }
-                statesWithNoChange.clear();
-                sameActionNext = false;
-            } else {
-                super.updateQTable(previousActionIndex, previousStateIndex, points);
-            }
-        }
-    }
+//    @Override
+//    void updateQTable(int previousActionIndex, int previousStateIndex, List<ValueAndScore> points) {
+//        if(getSTD(points, states.get(previousStateIndex))==getSTD(points, states.get(currentStateIndex)) && QTable[currentStateIndex][previousActionIndex]!=-1){
+//            statesWithNoChange.add(new Integer[]{previousStateIndex, previousActionIndex});
+//            sameActionNext = true;
+//            this.previousActionIndex = previousActionIndex;
+//        } else {
+//            if(statesWithNoChange.size()>0) {
+//                for (Integer[] state : statesWithNoChange) {
+//                    super.updateQTable(state[1], state[0], points);
+//                }
+//                statesWithNoChange.clear();
+//                sameActionNext = false;
+//            } else {
+//                super.updateQTable(previousActionIndex, previousStateIndex, points);
+//            }
+//        }
+//    }
 
     @Override
     void finishLearningIteration(List<ValueAndScore> points) {
-        if(recurrentPoints.size()>=mostRecurrentStateIndexSize)recurrentPoints.remove(0);
+        while(recurrentPoints.size()>=mostRecurrentStateIndexSize)recurrentPoints.remove(0);
 //        recurrentPoints.add(states.get(recurrentStateIndex));
         recurrentPoints.add(states.get(getStateWithMostIterationRecurrence()));
         populateStateRecurrence();

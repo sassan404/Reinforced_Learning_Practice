@@ -20,7 +20,8 @@ public class QLearning<T extends States, S> {
     int maxRecurrenceValue = 20;
     double minDistance = 1000;
     double maxDistance = 0;
-    double learningRate=0.000001, deLearningRate=0.05;
+    double learningRate=0.01, deLearningRate=0.05;
+    double discountFactor = 0.6;
     int iterationNumber;
     int learningIteration;
     List<Double> iterationNumbers;
@@ -29,7 +30,7 @@ public class QLearning<T extends States, S> {
     double change;
     public QLearning(double change) {
         this.change = change;
-        initQTable(true);
+        initQTable();
     }
 
     public QLearning() {
@@ -37,7 +38,7 @@ public class QLearning<T extends States, S> {
 
     void defineLearningVariables(String variablesLine){
         change = Double.parseDouble(variablesLine.split(",")[0]);
-        initQTable(false);
+        initQTable();
     }
 
     public void populateStates(){
@@ -46,16 +47,13 @@ public class QLearning<T extends States, S> {
     public void populateActions(){
     }
 
-    void initQTable(boolean newTable){
+    void initQTable(){
         recurrentPoints = new ArrayList<>();
         iterationNumbers = new ArrayList<>();
         populateStates();
         populateActions();
         QTable = new double[states.size()][stateCount];
-//        if(newTable) {
-            QOfActionWithNegative();
-//        }
-//        statesRecurrence = new int[states.size()];
+        QOfActionWithNegative();
     }
 
 
@@ -115,15 +113,15 @@ public class QLearning<T extends States, S> {
         int index = 0;
         Random randomGenerator = new Random();
         double random = randomGenerator.nextDouble();
-        for(int i=0; i<stateCount;i++){
-            if (QTable[stateIndex][i] != -1 && QTable[stateIndex][i]>=max) {
+        for(int i=0; i<stateCount; i++){
+            if (QTable[stateIndex][i] >= 0.0 && QTable[stateIndex][i]>=max) {
                 max = QTable[stateIndex][i];
                 index = i;
             }
         }
         if (random<exploration){
             for(int i=0; i<stateCount;i++){
-                if(((i+1)*random)<exploration/6 && QTable[stateIndex][i] != -1) index = i;
+                if(((i+1)*random)<exploration/6 && QTable[stateIndex][i] >= 0.0) index = i;
             }
         }
         return index;
@@ -139,10 +137,16 @@ public class QLearning<T extends States, S> {
 
     void updateQTable(int previousActionIndex, int previousStateIndex, List<S> points){
         double rewardValue = getReward(points);
-        if((QTable[previousStateIndex][previousActionIndex]+learningRate*(rewardValue-QTable[previousStateIndex][previousActionIndex]))<0){
+        double maxNextQValue = 0;
+        for(double value: QTable[currentStateIndex]){
+            if(maxNextQValue<value)
+                maxNextQValue = value;
+        }
+        double updatedQValue = learningRate * ( rewardValue - QTable[previousStateIndex][previousActionIndex] + discountFactor * maxNextQValue );
+        if((QTable[previousStateIndex][previousActionIndex] + updatedQValue)<0){
             return;
         }
-        QTable[previousStateIndex][previousActionIndex] += learningRate*(rewardValue-QTable[previousStateIndex][previousActionIndex]);
+        QTable[previousStateIndex][previousActionIndex] += updatedQValue;
 //        for(int i = 0;i<stateCount;i++){
 //            if( i!= previousActionIndex && QTable[previousStateIndex][i]>0 && (QTable[previousStateIndex][i] - deLearningRate*(rewardValue-QTable[previousStateIndex][i]))>0)
 //                QTable[previousStateIndex][i] -= deLearningRate*(rewardValue-QTable[previousStateIndex][i]);
@@ -198,17 +202,18 @@ public class QLearning<T extends States, S> {
             if(!outputFile.exists())
                 outputFile.createNewFile();
             FileWriter fileOutputStream = new FileWriter(outputFile);
+            BufferedWriter bw = new BufferedWriter(fileOutputStream);
             String actionsLine = getFirstLineInQTableFile();
-            fileOutputStream.append(actionsLine);
-            fileOutputStream.append("\n");
-            for(T state: states){
-//                fileOutputStream.append(state.toString()).append(",");
-                for(double value: QTable[states.indexOf(state)]){
-                    fileOutputStream.append(String.valueOf(value)).append(",");
+            bw.write(actionsLine);
+            bw.newLine();
+            for(int i=0; i<QTable.length; i++){
+                for(double value: QTable[i]){
+                    bw.write(value + ",");
                 }
-                fileOutputStream.append("\n");
+                bw.newLine();
             }
-            fileOutputStream.flush();
+            bw.flush();
+            bw.close();
             fileOutputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -235,6 +240,8 @@ public class QLearning<T extends States, S> {
                 }
                 index++;
             }
+            br.close();
+            fileReader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -28,7 +28,7 @@ public class GraphPlot extends JPanel{
             for(Double score: scoreList)
             if (score>max)max = score;
         }
-        MAX_SCORE = max + 0.1*max;
+        MAX_SCORE = max + 0.3*max;
     }
     @Override
     protected void paintComponent(Graphics g) {

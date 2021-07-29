@@ -4,23 +4,48 @@ import QLearningTests.GraphPlot;
 import QLearningTests.Values;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class main {
-    public static void main(String []args) {
-        try {
-//            applyForSpeedPm();
-            applyForSurfaceSt();
-//            applyForSpeedSt();
-//            applyForTransit();
-//            applyForTotalScore();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public static void main(String []args) throws IOException {
+//        Thread t1= new Thread(() -> {
+//            try {
+//                applyForSpeedPm();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        });
+//        t1.start();
+//        Thread t2= new Thread(() -> {
+//            try {
+//                applyForSurfaceSt();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        });
+//        t2.start();
+//        Thread t3= new Thread(() -> {
+//            try {
+//                applyForSpeedSt();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        });
+//        t3.start();
+//        Thread t4= new Thread(() -> {
+//            try {
+//                applyForTransit();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        });
+//        t4.start();
+        applyForSurfaceSt();
+        applyForSpeedSt();
+        applyForTransit();
+        applyForSpeedPm();
+        applyForTotalScore();
     }
 
     static String line = "";
@@ -28,12 +53,11 @@ public class main {
 
     static Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
 
-    static File generatedData = new File("src/resources/generatedData.csv");
-    static File realData = new File("src/resources/dataFile.csv");
+    static File data = new File("src/resources/generatedData.csv");
+//    static File data = new File("src/resources/dataFile.csv");
 
     static List<ValueAndScore> populateSpeedPmDataSet() throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader(generatedData));
-//        BufferedReader br = new BufferedReader(new FileReader(realData));
+        BufferedReader br = new BufferedReader(new FileReader(data));
         List<ValueAndScore> valueAndScores = new ArrayList<>();
         br.readLine();
         while ((line = br.readLine()) != null) {
@@ -55,8 +79,7 @@ public class main {
     }
 
     static List<ValueAndScore> populateSurfaceStDataSet() throws IOException {
-//        BufferedReader br = new BufferedReader(new FileReader(generatedData));
-        BufferedReader br = new BufferedReader(new FileReader(realData));
+        BufferedReader br = new BufferedReader(new FileReader(data));
         List<ValueAndScore> valueAndScores = new ArrayList<>();
         br.readLine();
         while ((line = br.readLine()) != null) {
@@ -77,8 +100,7 @@ public class main {
     }
 
     static List<ValueAndScore> populateSpeedStDataSet() throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader(generatedData));
-//        BufferedReader br = new BufferedReader(new FileReader(realData));
+        BufferedReader br = new BufferedReader(new FileReader(data));
         List<ValueAndScore> valueAndScores = new ArrayList<>();
         br.readLine();
         while ((line = br.readLine()) != null) {
@@ -99,8 +121,7 @@ public class main {
     }
 
     static List<ValueAndScore> populateTransitDataSet() throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader(generatedData));
-//        BufferedReader br = new BufferedReader(new FileReader(realData));
+        BufferedReader br = new BufferedReader(new FileReader(data));
         List<ValueAndScore> valueAndScores = new ArrayList<>();
         br.readLine();
         while ((line = br.readLine()) != null) {
@@ -141,49 +162,52 @@ public class main {
 
     static void applyForSpeedPm() throws IOException {
         List<ValueAndScore> valueAndScores = populateSpeedPmDataSet();
+        String fileName = "src/resources/speedPm.csv";
 //        QLearningForMeasuringScores qLearning = new QLearningForMeasuringScores(5, 15, 40, 80, 60, 100, 80, 120, 100, 140);
         QLearningForMeasuringScores qLearning = new QLearningForMeasuringScores();
-        String fileName = "QTable.csv";
         qLearning.populateQTableFromFile(fileName);
         applyQLearning(qLearning, fileName, valueAndScores, "SpeedPm: ");
     }
 
     static void applyForSurfaceSt() throws IOException {
         List<ValueAndScore> valueAndScores = populateSurfaceStDataSet();
+        String fileName = "src/resources/surfaceSt.csv";
 //        QLearningForMeasuringScores qLearning = new QLearningForMeasuringScores(1, 1, 1, 5, 3, 7, 6, 10, 10, 14);
         QLearningForMeasuringScores qLearning = new QLearningForMeasuringScores();
-        String fileName = "src/resources/surfaceSt.csv";
         qLearning.populateQTableFromFile(fileName);
         applyQLearning(qLearning, fileName, valueAndScores, "SurfaceST: ");
     }
 
     static void applyForSpeedSt() throws IOException {
         List<ValueAndScore> valueAndScores = populateSpeedStDataSet();
-        QLearningForMeasuringScores qLearning = new QLearningForMeasuringScores(0.5, 0.5, 1, 3, 1.5, 4, 2, 6, 3, 7);
-        //        QLearningForMeasuringScores qLearning = new QLearningForMeasuringScores();
         String fileName = "src/resources/speedST.csv";
-//        qLearning.populateQTableFromFile(fileName);
+//        QLearningForMeasuringScores qLearning = new QLearningForMeasuringScores(0.5, 0.5, 1, 3, 1.5, 3.5, 3, 5, 4, 6);
+                QLearningForMeasuringScores qLearning = new QLearningForMeasuringScores();
+        qLearning.populateQTableFromFile(fileName);
         applyQLearning(qLearning, fileName, valueAndScores, "SpeedSt: ");
     }
 
     static void applyForTransit() throws IOException {
         List<ValueAndScore> valueAndScores = populateTransitDataSet();
-        QLearningForMeasuringScores qLearning = new QLearningForMeasuringScores(0.5, 0.5, 1, 4, 2, 5, 3, 6, 4, 7);
-//        QLearningForMeasuringScores qLearning = new QLearningForMeasuringScores();
         String fileName = "src/resources/transit.csv";
-//        qLearning.populateQTableFromFile(fileName);
+//        QLearningForMeasuringScores qLearning = new QLearningForMeasuringScores(0.5, 0.5, 1.5, 3.5, 2.5, 4.5, 3.5, 5.5, 4.5, 6.5);
+        QLearningForMeasuringScores qLearning = new QLearningForMeasuringScores();
+        qLearning.populateQTableFromFile(fileName);
         applyQLearning(qLearning, fileName, valueAndScores, "transit: ");
     }
 
     static void applyForTotalScore() throws IOException {
         List<Record> valueAndScores = populateScoresDataSet();
-        QLearningForCombiningBalanceScores qLearning = new QLearningForCombiningBalanceScores(0.05);
+        String fileName = "src/resources/scoreCombination.csv";
+//        QLearningForCombiningBalanceScores qLearning = new QLearningForCombiningBalanceScores(0.05);
+        QLearningForCombiningBalanceScores qLearning = new QLearningForCombiningBalanceScores();
+        qLearning.populateQTableFromFile(fileName);
         int j=0;
         Random random = new Random();
         List<List<Record>> randomValueList = new ArrayList<>();
-        while (j<200){
+        while (j<100){
             List<Record> values = new ArrayList<>();
-            for(int i=0; i< 10; i++) {
+            for(int i=0; i< 30; i++) {
                 values.add(valueAndScores.get(random.nextInt(valueAndScores.size())));
             }
             randomValueList.add(values);
@@ -211,14 +235,14 @@ public class main {
         GraphPlot.createAndShowGui(graphList, measurementName + "th Values");
         List<List<Double>> iterationsList = new ArrayList<>();
         iterationsList.add(qLearning.iterationNumbers);
-//        GraphPlot.createAndShowGui(iterationsList, measurementName + "number of iterations");
+        qLearning.writeQTableToFile(fileName);
     }
 
     static void applyQLearning(QLearningForMeasuringScores qLearning, String fileName, List<ValueAndScore> valueAndScores, String graphName) {
         int j = 0;
         Random random = new Random();
         List<List<ValueAndScore>> randomValueList = new ArrayList<>();
-        while (j < 50000) {
+        while (j < 400000) {
             List<ValueAndScore> values = new ArrayList<>();
             for (int i = 0; i < 30; i++) {
                 values.add(valueAndScores.get(random.nextInt(valueAndScores.size())));
@@ -231,6 +255,7 @@ public class main {
             if (randomValueList.indexOf(data) != 0 && randomValueList.indexOf(data) % 10000 == 0) {
                 qLearning.writeQTableToFile(fileName);
                 System.out.println((randomValueList.indexOf(data) / 10000));
+                getInfoFromArray(qLearning.QTable);
             }
         }
         System.out.println("done");
@@ -285,5 +310,22 @@ public class main {
         doubles.add(avg3);
         doubles.add(avg4);
         return doubles;
+    }
+
+    static void getInfoFromArray(double[][] array){
+        double sum = 0;
+        DoubleSummaryStatistics stats = Arrays.stream(array)
+                .flatMapToDouble(Arrays::stream)
+                .filter(Objects::nonNull)
+                .summaryStatistics();
+        System.out.println("max value: " + stats.getMax());
+        System.out.println("avg value: " + stats.getAverage());
+        for(double[] row: array){
+            for(double ele: row){
+                sum = sum + Math.pow(2,(ele-stats.getAverage()));
+            }
+        }
+        System.out.println("std: " + Math.sqrt(sum/stats.getCount()));
+        System.out.println("*************************************************************************");
     }
 }

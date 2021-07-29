@@ -7,11 +7,16 @@ public class QLearningForCombiningBalanceScores extends QLearning<BalanceWeights
 
     public QLearningForCombiningBalanceScores(double change) {
         super(change);
+//        maxRecurrenceValue=50;
+    }
+
+    public QLearningForCombiningBalanceScores() {
+//        maxRecurrenceValue=50;
     }
 
     @Override
     public void populateStates(){
-        Set<BalanceWeights> ValuesList = new HashSet<>();
+        List<BalanceWeights> ValuesList = new ArrayList<>();
         for (double i = 0;i<=1; i=i+change){
             i = roundNumber(i);
             for(double j = 0; j<=1; j=j+change){
@@ -56,10 +61,10 @@ public class QLearningForCombiningBalanceScores extends QLearning<BalanceWeights
 
     @Override
     void QOfActionWithNegative(){
-        for(List<BalanceWeights> action: actions){
-            for(int i =0; i<action.size(); i++){
-                if(action.get(i).w1<0 || action.get(i).w2<0 || action.get(i).w3<0 || action.get(i).w4<0) {
-                    QTable[actions.indexOf(action)][i] = -1;
+        for(int i=0; i<actions.size(); i++){
+            for(int j =0; j<actions.get(i).size(); j++){
+                if(actions.get(i).get(j).w1<0 || actions.get(i).get(j).w2<0 || actions.get(i).get(j).w3<0 || actions.get(i).get(j).w4<0) {
+                    QTable[i][j] = -1;
                 }
             }
         }
@@ -74,7 +79,7 @@ public class QLearningForCombiningBalanceScores extends QLearning<BalanceWeights
         }
         Optional<?> valued = states.stream().filter(temp -> temp.w1 == value.w1 && temp.w2 == value.w2 && temp.w3 == value.w3 && temp.w4 == value.w4).findAny();
         if(valued.isEmpty())
-            System.out.println();
+            System.out.println("yjtyy");
         return 0;
     }
 
@@ -93,4 +98,5 @@ public class QLearningForCombiningBalanceScores extends QLearning<BalanceWeights
         }
         return Math.sqrt(squareSum/points.size());
     }
+
 }
