@@ -7,16 +7,13 @@ public class QLearningForMeasuringScores extends QLearning<BalanceThresholds, Va
 
     double minDiff;
     double minTh1, maxTh1, minTh2, maxTh2, minTh3, maxTh3, minTh4, maxTh4;
-    List<Integer[]> statesWithNoChange;
+    boolean sameActionNext = false;
+    int previousActionIndex;
+
     public QLearningForMeasuringScores(double change) {
         super(change);
     }
-    boolean sameActionNext = false;
-    int previousActionIndex;
-    List<BalanceThresholds> mostRecurrentPoints;
-    int[] statesRecurrence;
-    int mostRecurrentStateIndex = 0;
-    int mostRecurrentStateIndexSize = 20;
+
     public QLearningForMeasuringScores(double change, double minDifference, double minTh1, double maxTh1, double minTh2, double maxTh2, double minTh3, double maxTh3, double minTh4, double maxTh4) {
         this.minDiff = minDifference;
         this.minTh1 = minTh1;
@@ -27,7 +24,6 @@ public class QLearningForMeasuringScores extends QLearning<BalanceThresholds, Va
         this.maxTh3 = maxTh3;
         this.minTh4 = minTh4;
         this.maxTh4 = maxTh4;
-        statesWithNoChange = new ArrayList<>();
         mostRecurrentPoints = new ArrayList<>();
         this.change = change;
         initQTable();
@@ -48,7 +44,6 @@ public class QLearningForMeasuringScores extends QLearning<BalanceThresholds, Va
         this.maxTh3 = Double.parseDouble(variables[7]);
         this.minTh4 = Double.parseDouble(variables[8]);
         this.maxTh4 = Double.parseDouble(variables[9]);
-        statesWithNoChange = new ArrayList<>();
         mostRecurrentPoints = new ArrayList<>();
         super.defineLearningVariables(variablesLine);
     }
@@ -118,9 +113,9 @@ public class QLearningForMeasuringScores extends QLearning<BalanceThresholds, Va
     }
 
     @Override
-    int getStateIndex(BalanceThresholds value){
+    int getStateIndex(BalanceThresholds value) {
         for(BalanceThresholds state: states){
-            if(state.th1 == value.th1 && state.th2 == value.th2 && state.th3 == value.th3 && state.th4 == value.th4){
+            if(state.equal(value)){
                 return states.indexOf(state);
             }
         }
@@ -130,67 +125,17 @@ public class QLearningForMeasuringScores extends QLearning<BalanceThresholds, Va
         return new Random().nextInt(states.size());
     }
 
-//    @Override
-//    void updateQTable(int previousActionIndex, int previousStateIndex, List<ValueAndScore> points) {
-//        if(getSTD(points, states.get(previousStateIndex))==getSTD(points, states.get(currentStateIndex)) && QTable[currentStateIndex][previousActionIndex]!=-1){
-//            statesWithNoChange.add(new Integer[]{previousStateIndex, previousActionIndex});
-//            sameActionNext = true;
-//            this.previousActionIndex = previousActionIndex;
-//        } else {
-//            if(statesWithNoChange.size()>0) {
-//                for (Integer[] state : statesWithNoChange) {
-//                    super.updateQTable(state[1], state[0], points);
-//                }
-//                statesWithNoChange.clear();
-//                sameActionNext = false;
-//            } else {
-//                super.updateQTable(previousActionIndex, previousStateIndex, points);
-//            }
-//        }
-//    }
+    @Override
+    void addToRecurrentPoints() {
+        recurrentPoints.add(states.get(getStateWithMostIterationRecurrence()));
+    }
 
     @Override
     void finishLearningIteration(List<ValueAndScore> points) {
-        while(recurrentPoints.size()>=mostRecurrentStateIndexSize)recurrentPoints.remove(0);
-//        recurrentPoints.add(states.get(recurrentStateIndex));
-        recurrentPoints.add(states.get(getStateWithMostIterationRecurrence()));
-        populateStateRecurrence();
-        mostRecurrentStateIndex=getStateWithMostRecurrence();
-//        mostRecurrentStateIndex=getStateWithMostIterationRecurrence();
-        mostRecurrentPoints.add(states.get(mostRecurrentStateIndex));
-//        mostRecurrentPoints.add(states.get(recurrentStateIndex));
-        iterationNumbers.add((double)iterationNumber);
 
         super.finishLearningIteration(points);
     }
-    void populateStateRecurrence(){
-        statesRecurrence = new int[states.size()];
-        for(BalanceThresholds value: recurrentPoints){
-            statesRecurrence[states.indexOf(value)]++;
-        }
-    }
-    int getStateWithMostRecurrence(){
-        int max=0;
-        int mostRecurrent=0;
-        for(int i=0; i<statesRecurrence.length; i++){
-            if(statesRecurrence[i]>max){
-                max = statesRecurrence[i];
-                mostRecurrent = i;
-            }
-        }
-        return mostRecurrent;
-    }
-    int getStateWithMostIterationRecurrence(){
-        int max=0;
-        int mostRecurrent=0;
-        for(int i=0; i<stateIndices.length; i++){
-            if(stateIndices[i]>max){
-                max = stateIndices[i];
-                mostRecurrent = i;
-            }
-        }
-        return mostRecurrent;
-    }
+
 
     @Override
     double getSTD(List<ValueAndScore> points, BalanceThresholds stateValues) {

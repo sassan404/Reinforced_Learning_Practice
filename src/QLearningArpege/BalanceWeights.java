@@ -17,4 +17,9 @@ public class BalanceWeights extends States{
     public String toString(){
         return "[" + w1 + ", " + w2 + ", " + w3 + ", " + w4 +"]";
     }
+
+    @Override
+    public boolean equal(BalanceWeights otherState) {
+        return w1 == otherState.w1 && w2 == otherState.w2 && w3 == otherState.w3 && w4 == otherState.w4;
+    }
 }

@@ -22,4 +22,9 @@ public class BalanceThresholds extends States{
     public static String actionsString() {
         return ", +th1 , -th1 , +th2, -th2, +th3, -th3, +th4, -th4";
     }
+
+    @Override
+    public boolean equal(BalanceThresholds otherState) {
+        return th1 == otherState.th1 && th2 == otherState.th2 && th3 == otherState.th3 && th4 == otherState.th4;
+    }
 }

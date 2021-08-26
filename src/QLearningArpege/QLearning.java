@@ -1,7 +1,5 @@
 package QLearningArpege;
 
-import QLearningTests.Values;
-
 import java.io.*;
 import java.util.*;
 
@@ -17,7 +15,7 @@ public class QLearning<T extends States, S> {
     int highExploration = 0;
     int recurrence = 0;
     int recurrentStateIndex = 0;
-    int maxRecurrenceValue = 20;
+    int maxRecurrenceValue =50;
     double minDistance = 1000;
     double maxDistance = 0;
     double learningRate=0.01, deLearningRate=0.05;
@@ -28,7 +26,15 @@ public class QLearning<T extends States, S> {
     List<T> recurrentPoints;
     int[] stateIndices;
     double change;
+
+    List<T> mostRecurrentPoints;
+    int[] statesRecurrence;
+    int mostRecurrentStateIndex = 0;
+    int mostRecurrentStateIndexSize = 50;
+
+
     public QLearning(double change) {
+        mostRecurrentPoints = new ArrayList<>();
         this.change = change;
         initQTable();
     }
@@ -132,7 +138,15 @@ public class QLearning<T extends States, S> {
     }
 
     int getStateIndex(T value){
-        return 0;
+        for(T state: states){
+            if(state.equal(value)){
+                return states.indexOf(state);
+            }
+        }
+//        Optional<?> valued = states.stream().filter(temp -> temp.th1 == value.th1 && temp.th2 == value.th2 && temp.th3 == value.th3 && temp.th4==value.th4).findAny();
+//        if(valued.isEmpty())
+//            System.out.println("dghft");
+        return new Random().nextInt(states.size());
     }
 
     void updateQTable(int previousActionIndex, int previousStateIndex, List<S> points){
@@ -144,6 +158,7 @@ public class QLearning<T extends States, S> {
         }
         double updatedQValue = learningRate * ( rewardValue - QTable[previousStateIndex][previousActionIndex] + discountFactor * maxNextQValue );
         if((QTable[previousStateIndex][previousActionIndex] + updatedQValue)<0){
+            QTable[previousStateIndex][previousActionIndex]=0;
             return;
         }
         QTable[previousStateIndex][previousActionIndex] += updatedQValue;
@@ -160,7 +175,7 @@ public class QLearning<T extends States, S> {
 //        }
         if(currentSTD>maxDistance)
             maxDistance=currentSTD;
-        if(currentSTD<minDistance){
+        if(currentSTD<minDistance && currentSTD<previousSTD){
             minDistance = currentSTD;
             recurrence = 0;
             recurrentStateIndex = currentStateIndex;
@@ -175,18 +190,56 @@ public class QLearning<T extends States, S> {
 //            return 1;
         }
         if(currentSTD==0)
-            return 0.5;
+            return 0.25;
         return (previousSTD-currentSTD)/(previousSTD+currentSTD);
     }
 
+    void addToRecurrentPoints(){}
+
     void finishLearningIteration(List<S> points){
+        while(recurrentPoints.size()>=mostRecurrentStateIndexSize)recurrentPoints.remove(0);
+//        addToRecurrentPoints();
+        recurrentPoints.add(states.get(getStateWithMostIterationRecurrence()));
+        populateStateRecurrence();
+        mostRecurrentStateIndex=getStateWithMostRecurrence();
+//        mostRecurrentStateIndex=getStateWithMostIterationRecurrence();
+        mostRecurrentPoints.add(states.get(mostRecurrentStateIndex));
+//        mostRecurrentPoints.add(states.get(recurrentStateIndex));
+        iterationNumbers.add((double)iterationNumber);
         previousStateIndex = -1;
-//        if(learningIteration%100==0)
+//        if(learningIteration%1==0)
 //            System.out.println(learningIteration + ": " + recurrentStateIndex + " --> " + states.get(recurrentStateIndex).toString() + ": " + getSTD(points, states.get(recurrentStateIndex)) + " <--< " + iterationNumber);
 
     }
 
-
+    void populateStateRecurrence(){
+        statesRecurrence = new int[states.size()];
+        for(T value: recurrentPoints){
+            statesRecurrence[states.indexOf(value)]++;
+        }
+    }
+    int getStateWithMostRecurrence(){
+        int max=0;
+        int mostRecurrent=0;
+        for(int i=0; i<statesRecurrence.length; i++){
+            if(statesRecurrence[i]>max){
+                max = statesRecurrence[i];
+                mostRecurrent = i;
+            }
+        }
+        return mostRecurrent;
+    }
+    int getStateWithMostIterationRecurrence(){
+        int max=0;
+        int mostRecurrent=0;
+        for(int i=0; i<stateIndices.length; i++){
+            if(stateIndices[i]>max){
+                max = stateIndices[i];
+                mostRecurrent = i;
+            }
+        }
+        return mostRecurrent;
+    }
     
     double getSTD(List<S> points, T stateValues){
         return 0;

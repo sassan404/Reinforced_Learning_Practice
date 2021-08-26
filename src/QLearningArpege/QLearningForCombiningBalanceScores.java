@@ -15,6 +15,12 @@ public class QLearningForCombiningBalanceScores extends QLearning<BalanceWeights
     }
 
     @Override
+    void defineLearningVariables(String variablesLine) {
+        mostRecurrentPoints = new ArrayList<>();
+        super.defineLearningVariables(variablesLine);
+    }
+
+    @Override
     public void populateStates(){
         List<BalanceWeights> ValuesList = new ArrayList<>();
         for (double i = 0;i<=1; i=i+change){
@@ -71,24 +77,37 @@ public class QLearningForCombiningBalanceScores extends QLearning<BalanceWeights
     }
 
     @Override
-    int getStateIndex(BalanceWeights value){
+    void addToRecurrentPoints() {
+        recurrentPoints.add(states.get(recurrentStateIndex));
+    }
+
+    @Override
+    int getStateIndex(BalanceWeights value) {
         for(BalanceWeights state: states){
-            if(state.w1 == value.w1 && state.w2 == value.w2 && state.w3 == value.w3 && state.w4 == value.w4){
+            if(state.equal(value)){
                 return states.indexOf(state);
             }
         }
-        Optional<?> valued = states.stream().filter(temp -> temp.w1 == value.w1 && temp.w2 == value.w2 && temp.w3 == value.w3 && temp.w4 == value.w4).findAny();
-        if(valued.isEmpty())
-            System.out.println("yjtyy");
-        return 0;
+//        Optional<?> valued = states.stream().filter(temp -> temp.th1 == value.th1 && temp.th2 == value.th2 && temp.th3 == value.th3 && temp.th4==value.th4).findAny();
+//        if(valued.isEmpty())
+//            System.out.println("dghft");
+        return new Random().nextInt(states.size());
     }
 
     @Override
     void finishLearningIteration(List<Record> points) {
-        recurrentPoints.add(states.get(recurrentStateIndex));
-        iterationNumbers.add((double)iterationNumber);
+
+
         super.finishLearningIteration(points);
     }
+
+//    @Override
+//    void finishLearningIteration(List<Record> points) {
+//        System.out.println("distance: " + getSTD(points, states.get(recurrentStateIndex)));
+//        recurrentPoints.add(states.get(recurrentStateIndex));
+//        iterationNumbers.add((double)iterationNumber);
+//        super.finishLearningIteration(points);
+//    }
 
     @Override
     double getSTD(List<Record> points, BalanceWeights stateValues) {
